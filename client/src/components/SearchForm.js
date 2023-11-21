@@ -1,18 +1,33 @@
-// src/components/SearchForm.js
-import React, { useState, useRef } from 'react';
+// SearchForm.js
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function SearchForm() {
   const [searchTerm, setSearchTerm] = useState('');
-  const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleSearchSubmit = (event) => {
+  const handleSearchSubmit = async (event) => {
     event.preventDefault();
-    // Assuming you want to search when the form is submitted
-    // You can modify this logic based on your requirements
-    console.log('Input value:', inputRef.current.value);
-    navigate(`/search?term=${searchTerm}`);
+
+    try {
+      // Make a POST request to the server with the search term
+      const response = await fetch('http://localhost:3001/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ term: searchTerm }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Search request failed');
+      }
+
+      // Redirect to the SearchResultsPage with the search term
+      navigate(`/search?term=${searchTerm}`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -23,7 +38,6 @@ function SearchForm() {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          ref={inputRef}
           placeholder="Type here..."
         />
       </label>
