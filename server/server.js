@@ -30,6 +30,10 @@ const dbConfig = {
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../client/build')));
 
+// Handle other routes by serving the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+});
 
 // Endpoint for handling search requests
 app.post('/search', async (req, res) => {
@@ -83,12 +87,6 @@ app.post('/search', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-});
-
-
-// Handle other routes by serving the React app
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 
