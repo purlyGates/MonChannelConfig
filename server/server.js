@@ -74,12 +74,14 @@ app.post('/search', async (req, res) => {
        OR LOWER(ADAPTERENGINENAME) LIKE LOWER('%${term}%')
     `;
 
+    // format result into Javascript Object
+    oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT
+
     // Execute the SQL query
     const result = await connection.execute(query);
 
     // Send the results back to the frontend
     res.json(result.rows);
-
 
     // Release the Oracle connection
     await connection.close();

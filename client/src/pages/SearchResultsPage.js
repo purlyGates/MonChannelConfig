@@ -1,11 +1,21 @@
 // SearchResultsPage.js
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import styles from './SearchResultsPage.module.css';
+import { Container, Table } from 'react-bootstrap';
+import ChannelModal from '../components/ChannelModal';
 
 function SearchResultsPage() {
   const [searchResults, setSearchResults] = useState([]);
   const location = useLocation();
+  const [show, setShow] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  // Modal handling
+  const handleClose = () => setShow(false);
+  const handleShow = (rowData) => {
+    setSelectedRow(rowData);
+    setShow(true);
+  };
 
   useEffect(() => {
     const term = new URLSearchParams(location.search).get('term');
@@ -26,6 +36,7 @@ function SearchResultsPage() {
 
         const data = await response.json();
         setSearchResults(data);
+
       } catch (error) {
         console.error(error);
       }
@@ -35,33 +46,22 @@ function SearchResultsPage() {
   }, [location.search]);
 
   const tableHeaders = [
-    'CCID',
-    'MasterLanguage',
-    'ResponsibleUserAccountID',
-    'LastChangeUserAccountID',
-    'LastChangedDatetime',
-    'FolderPathID',
-    'CCDescription',
-    'PartyID',
-    'ComponentID',
-    'ChannelID',
-    'AdaMetaName',
-    'AdaMetaNamespace',
-    'AdaMetaScVersionID',
-    'Direction',
-    'TransportProtocol',
-    'TransportProtocolVersion',
-    'MessageProtocol',
-    'MessageProtocolVersion',
-    'AdapterEngineName',
+    'CC_ID',
+    'RESPONSIBLEUSERACCOUNTID',
+    'LASTCHANGEDATETIME',
+    'PARTYID',
+    'COMPONENTID',
+    'CHANNELID',
+    'ADA_META_NAME',
+    'DIRECTION',
   ];
 
   return (
-    <div className={styles.searchResultsPage}>
+    <Container>
       <h1>Search Results</h1>
 
       {/* Render your search results in a table */}
-      <table>
+      <Table hover>
         <thead>
           <tr>
             {tableHeaders.map((header) => (
@@ -70,16 +70,19 @@ function SearchResultsPage() {
           </tr>
         </thead>
         <tbody>
-          {searchResults.map((result, index) => (
-            <tr key={index}>
-              {result.map((field, fieldIndex) => (
-                <td key={fieldIndex}>{field}</td>
+          {searchResults.map((searchRow) => (
+             <tr key={searchRow["CC_ID"]} onClick={() => handleShow(searchRow)}>
+              {tableHeaders.map((header) => (
+                <td key={header}>{searchRow[header]}</td>
               ))}
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </Table>
+
+      <ChannelModal show={show} handleClose={handleClose} rowData={selectedRow} animation={false} />
+
+    </Container>
   );
 }
 
