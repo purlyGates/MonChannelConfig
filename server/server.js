@@ -91,6 +91,64 @@ app.post('/search', async (req, res) => {
   }
 });
 
+// Enspoint for handling search via Detailed Formulaire
+app.post('/filteredSearch', async (req, res) => {
+
+  try {
+    // Connect to the Oracle database
+    const connection = await oracledb.getConnection(dbConfig);
+
+    console.log(req.body);
+
+    const body = req.body;
+    // Get the search filters from the request body
+    // ensure that filters is not empty
+    const { filters } = body;
+    if (!filters) {
+      return res.status(400).json({ error: 'Missing or invalid filters in the request body' });
+    }
+
+    // Construct a dynamic SQL query to search across all columns
+    const query = `
+    SELECT *
+    FROM sap_orchestration.CC_INFO
+    WHERE LOWER(CC_ID) LIKE LOWER('%${filters["CC_ID"]}%')
+       OR LOWER(MASTERLANGUAGE) LIKE LOWER('%${filters["MASTERLANGUAGE"]}%')
+       OR LOWER(RESPONSIBLEUSERACCOUNTID) LIKE LOWER('%${filters["RESPONSIBLEUSERACCOUNTID"]}%')
+       OR LOWER(LASTCHANGEUSERACCOUNTID) LIKE LOWER('%${filters["LASTCHANGEUSERACCOUNTID"]}%')
+       OR LOWER(LASTCHANGEDATETIME) LIKE LOWER('%${filters["LASTCHANGEDATETIME"]}%')
+       OR LOWER(FOLDERPATHID) LIKE LOWER('%${filters["FOLDERPATHID"]}%')
+       OR LOWER(CC_DESCRIPTION) LIKE LOWER('%${filters["CC_DESCRIPTION"]}%')
+       OR LOWER(PARTYID) LIKE LOWER('%${filters["PARTYID"]}%')
+       OR LOWER(COMPONENTID) LIKE LOWER('%${filters["COMPONENTID"]}%')
+       OR LOWER(CHANNELID) LIKE LOWER('%${filters["CHANNELID"]}%')
+       OR LOWER(ADA_META_NAME) LIKE LOWER('%${filters["ADA_META_NAME"]}%')
+       OR LOWER(ADA_META_NAMESPACE) LIKE LOWER('%${filters["ADA_META_NAMESPACE"]}%')
+       OR LOWER(ADA_META_SCVERSIONID) LIKE LOWER('%${filters["ADA_META_SCVERSIONID"]}%')
+       OR LOWER(DIRECTION) LIKE LOWER('%${filters["DIRECTION"]}%')
+       OR LOWER(TRANSPORTPROTOCOL) LIKE LOWER('%${filters["TRANSPORTPROTOCOL"]}%')
+       OR LOWER(TRANSPORTPROTOCOLVERSION) LIKE LOWER('%${filters["TRANSPORTPROTOCOLVERSION"]}%')
+       OR LOWER(MESSAGEPROTOCOL) LIKE LOWER('%${filters["MESSAGEPROTOCOL"]}%')
+       OR LOWER(MESSAGEPROTOCOLVERSION) LIKE LOWER('%${filters["MESSAGEPROTOCOLVERSION"]}%')
+       OR LOWER(ADAPTERENGINENAME) LIKE LOWER('%${filters["ADAPTERENGINENAME"]}%')
+    `;
+
+    // format result into Javascript Object
+    oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT
+
+    // Execute the SQL query
+    const result = await connection.execute(query);
+
+    // Send the results back to the frontend
+    res.json(result.rows);
+
+    // Release the Oracle connection
+    await connection.close();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);

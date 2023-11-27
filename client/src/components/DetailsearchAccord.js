@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Accordion from 'react-bootstrap/Accordion'
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 
@@ -25,7 +26,10 @@ const tableHeaders = [
 ];
 
 const DetailsearchAccord = () => {
-  const [formValues, setFormValues] = useState({});
+  const initialFormValues = Object.fromEntries(tableHeaders.map((header) => [header, '']));
+  const [formValues, setFormValues] = useState(initialFormValues);
+
+  const navigate = useNavigate();
 
   const handleChange = (header, value) => {
     setFormValues((prevValues) => ({
@@ -34,28 +38,45 @@ const DetailsearchAccord = () => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSearchSubmit = async (event) => {
     event.preventDefault();
-    // You can access the form values in the state (formValues) and perform actions like API calls or other logic.
-    console.log('Form Values:', formValues);
+
+    try {
+      // Make a POST request to the server with the search term
+      const response = await fetch('http://localhost:3001/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filters: formValues }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Search request failed');
+      }
+
+      // Redirect to the SearchResultsPage with the search term
+      navigate(`/search`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  return (
-    <Accordion>
+  return ( <Accordion>
       <Accordion.Item eventKey="0">
         <Accordion.Header>Detailed Filters</Accordion.Header>
         <Accordion.Body>
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSearchSubmit}>
             <Container>
               <Form.Group>
                 {tableHeaders.map((header) => (
-                  <Row>
+                  <Row key={header}>
                     <Col>
                     <Form.Label>{header}:</Form.Label>
                     </Col>
                     <Col>
                       <Form.Control
-                        type="text"
+                        type="text" 
                         value={formValues[header] || ''}
                         onChange={(e) => handleChange(header, e.target.value)}
                       />
@@ -65,7 +86,7 @@ const DetailsearchAccord = () => {
                 ))}
               </Form.Group>
             </Container>
-            <Button>Submit</Button>
+            <Button variant='primary' type='submit'>Submit</Button>
           </Form>
         </Accordion.Body>
       </Accordion.Item>
