@@ -5,6 +5,12 @@ const oracledb = require('oracledb');
 const cors = require('cors');
 require('dotenv').config();
 
+function paginateData(data, page, itemsPerPage) {
+  const startIdx = (page - 1) * itemsPerPage;
+  const endIdx = startIdx + itemsPerPage;
+  return data.slice(startIdx, endIdx);
+}
+
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -36,15 +42,14 @@ app.get('*', (req, res) => {
 });
 
 // Endpoint for handling search requests
+// Express route for handling pagination
 app.post('/search', async (req, res) => {
-
   try {
+    const { term, page, itemsPerPage } = req.body;
+
     // Connect to the Oracle database
     const connection = await oracledb.getConnection(dbConfig);
 
-    // Get the search term from the request body
-    // ensure that term is not empty
-    const { term } = req.body;
     if (!term) {
       return res.status(400).json({ error: 'Missing or invalid term in the request body' });
     }
@@ -78,13 +83,13 @@ app.post('/search', async (req, res) => {
     oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT
 
     // Execute the SQL query
-    const result = await connection.execute(query);
+    const allData = await connection.execute(query);
 
-    // Send the results back to the frontend
-    res.json(result.rows);
+    // Paginate the data based on the requested page and items per page
+    // const paginatedData = paginateData(allData.rows, page, itemsPerPage);
 
-    // Release the Oracle connection
-    await connection.close();
+    // Send the paginated data to the client
+    res.json(allData.rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -97,8 +102,6 @@ app.post('/filteredSearch', async (req, res) => {
   try {
     // Connect to the Oracle database
     const connection = await oracledb.getConnection(dbConfig);
-
-    console.log(req.body);
 
     const body = req.body;
     // Get the search filters from the request body

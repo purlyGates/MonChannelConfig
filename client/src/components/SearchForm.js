@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button } from 'react-bootstrap';
+import { useDataContext } from '../DataContext';
 
 function SearchForm() {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const { setContextData } = useDataContext();
 
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
@@ -24,8 +26,13 @@ function SearchForm() {
         throw new Error('Search request failed');
       }
 
-      // Redirect to the SearchResultsPage with the search term
-      navigate(`/search?term=${searchTerm}`);
+      const data = await response.json();
+
+      const dataToSend = { searchResults: data };
+      console.log(dataToSend);
+      setContextData(dataToSend);
+      navigate('/search');
+      
     } catch (error) {
       console.error(error);
     }
