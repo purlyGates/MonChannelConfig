@@ -28,8 +28,8 @@ function SearchForm() {
 
       const data = await response.json();
 
-      const dataToSend = { searchResults: data };
-      console.log(dataToSend);
+      const dataToSend = { searchResults: data,
+                           term: searchTerm };
       setContextData(dataToSend);
       navigate('/search');
       

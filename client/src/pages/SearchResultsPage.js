@@ -15,7 +15,7 @@ function SearchResultsPage() {
 
   const totalObjects = searchResults.length;
   const itemsPerPage = 11; // You can adjust this based on your needs
-  const totalPages = Math.ceil(totalObjects / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(totalObjects / itemsPerPage)); // calculate totalPages, standard = 1
 
   // selection for Modal
   const [selectedRow, setSelectedRow] = useState(null);

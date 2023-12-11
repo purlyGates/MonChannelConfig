@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Accordion from 'react-bootstrap/Accordion'
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
+import { useDataContext } from '../DataContext';
 
 const tableHeaders = [
   'CC_ID',
@@ -28,6 +29,7 @@ const tableHeaders = [
 const DetailsearchAccord = () => {
   const initialFormValues = Object.fromEntries(tableHeaders.map((header) => [header, '']));
   const [formValues, setFormValues] = useState(initialFormValues);
+  const { setContextData } = useDataContext();
 
   const navigate = useNavigate();
 
@@ -43,7 +45,7 @@ const DetailsearchAccord = () => {
 
     try {
       // Make a POST request to the server with the search term
-      const response = await fetch('http://localhost:3001/search', {
+      const response = await fetch('http://localhost:3001/filteredSearch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,6 +57,10 @@ const DetailsearchAccord = () => {
         throw new Error('Search request failed');
       }
 
+      const data = await response.json();
+      const dataToSend = { searchResults: data,
+                            filters: formValues };
+      setContextData(dataToSend);
       // Redirect to the SearchResultsPage with the search term
       navigate(`/search`);
     } catch (error) {
